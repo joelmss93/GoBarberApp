@@ -1,16 +1,23 @@
-/* eslint-disable arrow-body-style */
 import React from 'react';
 import { Image } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
-import { Container, Title } from './styles';
+import {
+  Container,
+  Title,
+  ForgotPassword,
+  ForgotPasswordText,
+  CreateAccountButton,
+  CreateAccountButtonText,
+} from './styles';
 
 import logoImg from '../../assets/logo.png';
 
-const SignIn: React.FC = () => {
-  return (
+const SignIn: React.FC = () => (
+  <>
     <Container>
       <Image source={logoImg} />
 
@@ -21,8 +28,17 @@ const SignIn: React.FC = () => {
 
       <Button onPress={() => { console.log(''); }}>Entrar</Button>
 
+      <ForgotPassword onPress={() => {}}>
+        <ForgotPasswordText>Esqueci minha senha</ForgotPasswordText>
+      </ForgotPassword>
+
     </Container>
-  );
-};
+
+    <CreateAccountButton onPress={() => {}}>
+      <Icon name="log-in" size={20} color="#FF9000" />
+      <CreateAccountButtonText>Criar uma conta</CreateAccountButtonText>
+    </CreateAccountButton>
+  </>
+);
 
 export default SignIn;
