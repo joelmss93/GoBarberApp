@@ -1,9 +1,12 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback, useEffect, useMemo, useState,
+} from 'react';
 import { Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+import { format } from 'date-fns';
 import { Provider } from '../Dashboard';
 
 import { useAuth } from '../../hooks/auth';
@@ -31,6 +34,11 @@ interface RouteParams {
   providerId: string;
 }
 
+interface AvailabilityItem {
+  hour: number;
+  available: boolean;
+}
+
 const CreateAppointment: React.FC = () => {
   const { user } = useAuth();
   const route = useRoute();
@@ -38,6 +46,7 @@ const CreateAppointment: React.FC = () => {
 
   const routeParams = route.params as RouteParams;
 
+  const [availability, setAvailability] = useState<AvailabilityItem[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -49,9 +58,23 @@ const CreateAppointment: React.FC = () => {
     });
   }, []);
 
+  useEffect(() => {
+    api.get(`/providers/${selectedProvider}/day-availability`, {
+      params: {
+        year: selectedDate.getFullYear(),
+        month: selectedDate.getMonth() + 1,
+        day: selectedDate.getDate(),
+      },
+    }).then((response) => {
+      setAvailability(response.data);
+    });
+  }, [selectedDate, selectedProvider]);
+
   const navigateBack = useCallback(() => {
     goBack();
   }, [goBack]);
+
+  console.log(availability);
 
   const handleSelectProvider = useCallback((providerId: string) => {
     setSelectedProvider(providerId);
@@ -70,6 +93,22 @@ const CreateAppointment: React.FC = () => {
       setSelectedDate(date);
     }
   }, []);
+
+  const morningAvalailability = useMemo(() => availability
+    .filter(({ hour }) => hour < 12)
+    .map(({ hour, available }) => ({
+      hour,
+      available,
+      hourFormatted: format(new Date().setHours(hour), 'HH:00'),
+    })), [availability]);
+
+  const afternoonAvalailability = useMemo(() => availability
+    .filter(({ hour }) => hour >= 12)
+    .map(({ hour, available }) => ({
+      hour,
+      available,
+      hourFormatted: format(new Date().setHours(hour), 'HH:00'),
+    })), [availability]);
 
   return (
     <Container>
@@ -122,6 +161,10 @@ const CreateAppointment: React.FC = () => {
         )}
 
       </Calendar>
+
+      {morningAvalailability.map(({ hourFormatted, available }) => (
+        <Title key={hourFormatted}>{hourFormatted}</Title>
+      ))}
     </Container>
   );
 };
